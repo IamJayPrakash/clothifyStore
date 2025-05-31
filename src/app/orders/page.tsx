@@ -43,20 +43,20 @@ export default function OrdersPage() {
   if (loading || !user) return null;
 
   return (
-    <main className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Order History</h1>
+    <main className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100 flex flex-col py-8 px-2">
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center md:text-left">Order History</h1>
       {loadingOrders ? (
         <div className="text-center text-gray-500 py-16">Loading orders...</div>
       ) : orders.length === 0 ? (
         <div className="text-center text-gray-500 py-16">No orders found.</div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-3xl mx-auto">
           {orders.map((order) => (
-            <Card key={order.id} className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <Card key={order.id} className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-xl border-0">
               <div>
                 <div className="font-bold text-lg mb-1">Order #{order.id}</div>
                 <div className="text-gray-500 text-sm mb-2">
-                  {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : ''} &middot; {order.status}
+                  {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : ''} &middot; <span className={`font-semibold ${order.status === 'pending' ? 'text-yellow-600' : order.status === 'delivered' ? 'text-green-600' : 'text-primary'}`}>{order.status}</span>
                 </div>
                 <ul className="mb-2 text-sm">
                   {order.items.map((item, i) => (

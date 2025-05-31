@@ -113,39 +113,42 @@ export default function CheckoutPage() {
   if (loading) return <div className="text-center py-16">Loading cart...</div>;
 
   return (
-    <main className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Checkout</h1>
-      <div className="flex flex-col md:flex-row gap-8">
+    <main className="max-w-4xl mx-auto px-2 md:px-6 py-8">
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center md:text-left">Checkout</h1>
+      <div className="flex flex-col md:flex-row gap-10">
         {/* Address Form */}
         <section className="flex-1">
           <Card className="p-6 mb-6">
-            <h2 className="font-bold mb-4">Shipping Address</h2>
+            <h2 className="font-bold text-xl mb-4">Shipping Address</h2>
             <Input
               label="Address"
               value={address}
               onChange={e => setAddress(e.target.value)}
               placeholder="Enter your shipping address"
               className="mb-4"
+              required
             />
             {/* TODO: Add more address fields as needed */}
           </Card>
         </section>
         {/* Order Summary */}
-        <aside className="w-full md:w-80 bg-accent rounded-lg p-6 h-fit">
-          <h2 className="font-bold mb-4">Order Summary</h2>
-          <ul className="mb-4">
-            {cart.map((item, i) => (
-              <li key={i} className="flex justify-between mb-2">
-                <span>{item.name} x {item.qty}</span>
-                <span>₹{item.price * item.qty}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="flex justify-between font-bold text-lg mb-6">
-            <span>Total</span>
-            <span>₹{total}</span>
-          </div>
-          <Button className="w-full" loading={paying} onClick={handlePay} disabled={cart.length === 0 || !address}>Pay with Razorpay</Button>
+        <aside className="w-full md:w-80">
+          <Card className="p-6 sticky top-24">
+            <h2 className="font-bold text-xl mb-4">Order Summary</h2>
+            <ul className="mb-4 divide-y divide-gray-100">
+              {cart.map((item, i) => (
+                <li key={i} className="flex justify-between items-center py-2">
+                  <span className="font-medium text-base line-clamp-1">{item.name} <span className="text-gray-400">× {item.qty}</span></span>
+                  <span className="font-semibold">₹{item.price * item.qty}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex justify-between font-bold text-lg mb-6">
+              <span>Total</span>
+              <span>₹{total}</span>
+            </div>
+            <Button className="w-full text-lg py-3 rounded-full font-semibold shadow hover:scale-[1.02] transition-transform" loading={paying} onClick={handlePay} disabled={cart.length === 0 || !address}>Pay with Razorpay</Button>
+          </Card>
         </aside>
       </div>
     </main>

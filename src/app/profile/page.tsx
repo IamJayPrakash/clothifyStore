@@ -38,18 +38,18 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Profile</h1>
-      <Card className="p-6 max-w-lg mx-auto">
-        <form onSubmit={handleUpdate} className="space-y-4">
+    <main className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100 flex flex-col justify-center py-8 px-2">
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center md:text-left">Profile</h1>
+      <Card className="p-8 max-w-lg mx-auto shadow-xl border-0">
+        <form onSubmit={handleUpdate} className="space-y-5">
           <Input label="Name" value={name} onChange={e => setName(e.target.value)} required />
           <Input label="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" required />
           <Input label="New Password" value={password} onChange={e => setPassword(e.target.value)} type="password" helperText="Leave blank to keep current password" />
-          {success && <div className="text-green-600 text-sm">{success}</div>}
-          {error && <div className="text-red-500 text-sm">{error}</div>}
-          <Button type="submit" className="w-full" loading={loading}>Update Profile</Button>
+          {success && <div className="text-green-600 text-sm font-medium">{success}</div>}
+          {error && <div className="text-red-500 text-sm font-medium">{error}</div>}
+          <Button type="submit" className="w-full text-lg py-3 rounded-full font-semibold shadow hover:scale-[1.02] transition-transform" loading={loading}>Update Profile</Button>
         </form>
-        <Button className="w-full mt-4" variant="outline" onClick={logout} loading={authLoading}>Sign Out</Button>
+        <Button className="w-full mt-6" variant="outline" onClick={logout} loading={authLoading}>Sign Out</Button>
       </Card>
     </main>
   );
