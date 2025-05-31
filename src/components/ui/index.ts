@@ -6,4 +6,5 @@ export * from './drawer';
 export * from './product-card';
 export * from './banner';
 export * from './section-title';
-export * from './loader'; 
+export * from './loader';
+export * from './cloudinary-upload'; 

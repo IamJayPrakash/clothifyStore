@@ -1,29 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/ui';
 import Link from 'next/link';
-
-const initialCart = [
-  {
-    id: '1',
-    name: 'Elegant Red Saree',
-    image: 'https://source.unsplash.com/400x400/?saree,red',
-    price: 2499,
-    qty: 1,
-    href: '/product/elegant-red-saree',
-  },
-  {
-    id: '2',
-    name: 'Floral Anarkali Suit',
-    image: 'https://source.unsplash.com/400x400/?anarkali,suit',
-    price: 2999,
-    qty: 2,
-    href: '/product/floral-anarkali-suit',
-  },
-];
+import { useAuth } from '../../firebase/auth-context';
+import { db } from '../../firebase/config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function CartPage() {
-  const [cart, setCart] = useState(initialCart);
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const { user } = useAuth();
+  const [cart, setCart] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load cart from Firestore or localStorage
+  useEffect(() => {
+    async function fetchCart() {
+      setLoading(true);
+      if (user) {
+        const cartRef = doc(db, 'carts', user.uid);
+        const cartSnap = await getDoc(cartRef);
+        setCart(cartSnap.exists() ? cartSnap.data().items : []);
+      } else {
+        const local = localStorage.getItem('cart');
+        setCart(local ? JSON.parse(local) : []);
+      }
+      setLoading(false);
+    }
+    fetchCart();
+  }, [user]);
+
+  // Sync cart to Firestore or localStorage
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      setDoc(doc(db, 'carts', user.uid), { items: cart });
+    } else {
+      localStorage.setItem('cart', JSON.stringify(cart));
+    }
+  }, [cart, user, loading]);
 
   const updateQty = (id: string, qty: number) => {
     setCart((prev) => prev.map((item) => item.id === id ? { ...item, qty: Math.max(1, qty) } : item));
@@ -31,6 +43,10 @@ export default function CartPage() {
   const removeItem = (id: string) => {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  if (loading) return <div className="text-center py-16">Loading cart...</div>;
 
   return (
     <main className="container mx-auto py-8">

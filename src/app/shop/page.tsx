@@ -1,42 +1,16 @@
 import React from 'react';
 import { ProductCard, SectionTitle } from '../../components/ui';
+import { db } from '../../firebase/config';
+import { collection, getDocs } from 'firebase/firestore';
 
-const products = [
-  {
-    id: '1',
-    name: 'Elegant Red Saree',
-    image: 'https://source.unsplash.com/400x400/?saree,red',
-    price: 2499,
-    oldPrice: 3999,
-    href: '/product/elegant-red-saree',
-  },
-  {
-    id: '2',
-    name: 'Floral Anarkali Suit',
-    image: 'https://source.unsplash.com/400x400/?anarkali,suit',
-    price: 2999,
-    oldPrice: 4499,
-    href: '/product/floral-anarkali-suit',
-  },
-  {
-    id: '3',
-    name: 'Classic Blue Kurti',
-    image: 'https://source.unsplash.com/400x400/?kurti,blue',
-    price: 1199,
-    oldPrice: 1999,
-    href: '/product/classic-blue-kurti',
-  },
-  {
-    id: '4',
-    name: 'Designer Co-ord Set',
-    image: 'https://source.unsplash.com/400x400/?co-ord,set',
-    price: 1899,
-    oldPrice: 2999,
-    href: '/product/designer-coord-set',
-  },
-];
+async function getProducts() {
+  const productsRef = collection(db, 'products');
+  const snapshot = await getDocs(productsRef);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const products = await getProducts();
   return (
     <main className="container mx-auto py-8">
       <SectionTitle>Shop</SectionTitle>
@@ -49,7 +23,7 @@ export default function ShopPage() {
         </aside>
         {/* Product Grid */}
         <section className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {products.map((product: any) => (
             <ProductCard key={product.id} {...product} />
           ))}
         </section>
