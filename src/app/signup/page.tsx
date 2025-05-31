@@ -1,10 +1,11 @@
+"use client";
 import React, { useState } from 'react';
 import { Card, Input, Button, SectionTitle } from '../../components/ui';
 import { useAuth } from '../../firebase/auth-context';
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
-  const { signup, loading } = useAuth();
+  const { signup, loading, loginWithGoogle } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,8 +17,8 @@ export default function SignupPage() {
     try {
       await signup(email, password);
       router.push('/profile');
-    } catch (err: any) {
-      setError(err.message || 'Signup failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Signup failed');
     }
   };
 
@@ -31,6 +32,9 @@ export default function SignupPage() {
           {error && <div className="text-red-500 text-sm">{error}</div>}
           <Button type="submit" className="w-full" loading={loading}>Sign Up</Button>
         </form>
+        <Button type="button" variant="outline" className="w-full mt-4" onClick={loginWithGoogle} disabled={loading}>
+          Sign Up with Google
+        </Button>
         <div className="mt-4 text-center text-sm">
           Already have an account? <a href="/login" className="text-primary underline">Login</a>
         </div>

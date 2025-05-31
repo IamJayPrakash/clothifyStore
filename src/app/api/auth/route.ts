@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '../../../firebase/config';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
-export async function POST(req: NextRequest) {
-  const { mode, email, password } = await req.json();
+export async function POST(request: Request) {
+  const { mode, email, password } = await request.json();
   try {
     let user;
     if (mode === 'login') {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid mode' }, { status: 400 });
     }
     return NextResponse.json({ uid: user.uid, email: user.email });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }
 } 

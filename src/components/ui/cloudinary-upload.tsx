@@ -1,4 +1,7 @@
+"use client";
+
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 
 interface CloudinaryUploadProps {
   onUpload: (url: string) => void;
@@ -26,7 +29,7 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({ onUpload, la
       const data = await res.json();
       setPreview(data.secure_url);
       onUpload(data.secure_url);
-    } catch (err) {
+    } catch {
       alert('Image upload failed.');
     } finally {
       setLoading(false);
@@ -45,7 +48,7 @@ export const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({ onUpload, la
         disabled={loading}
       />
       {preview && (
-        <img src={preview} alt="Preview" className="w-32 h-32 object-cover rounded border mt-2" />
+        <Image src={preview} alt="Preview" width={128} height={128} className="w-32 h-32 object-cover rounded border mt-2" />
       )}
       {loading && <span className="text-primary">Uploading...</span>}
     </div>

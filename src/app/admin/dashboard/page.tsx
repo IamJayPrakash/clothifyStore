@@ -1,5 +1,8 @@
+"use client";
 import React from 'react';
 import { Card, SectionTitle } from '../../../components/ui';
+import { useAuth } from '../../../firebase/auth-context';
+import { useRouter } from 'next/navigation';
 
 const stats = [
   { label: 'Total Sales', value: '₹1,25,000' },
@@ -9,6 +12,13 @@ const stats = [
 ];
 
 export default function AdminDashboardPage() {
+  const { role, loading } = useAuth();
+  const router = useRouter();
+  React.useEffect(() => {
+    if (!loading && role !== 'admin') router.replace('/login');
+  }, [role, loading, router]);
+  if (loading || role !== 'admin') return null;
+
   return (
     <main className="container mx-auto py-8">
       <SectionTitle>Admin Dashboard</SectionTitle>

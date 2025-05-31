@@ -1,13 +1,15 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Button, Card } from '../../components/ui';
 import Link from 'next/link';
 import { useAuth } from '../../firebase/auth-context';
 import { db } from '../../firebase/config';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import Image from 'next/image';
 
 export default function CartPage() {
   const { user } = useAuth();
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<Array<{ id: string; name: string; image: string; price: number; qty: number; href: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   // Load cart from Firestore or localStorage
@@ -61,7 +63,7 @@ export default function CartPage() {
           <section className="flex-1 space-y-6">
             {cart.map((item) => (
               <Card key={item.id} className="flex items-center gap-4 p-4">
-                <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded" />
+                <Image src={item.image} alt={item.name} width={96} height={96} className="w-24 h-24 object-cover rounded" />
                 <div className="flex-1">
                   <Link href={item.href} className="font-semibold text-lg hover:underline">{item.name}</Link>
                   <div className="text-primary font-bold">₹{item.price}</div>

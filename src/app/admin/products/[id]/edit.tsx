@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Card, Input, Button, SectionTitle, CloudinaryUpload } from '../../../../components/ui';
 import { db } from '../../../../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '../../../../firebase/auth-context';
+import { useRouter } from 'next/navigation';
 
 const product = {
   name: 'Elegant Red Saree',
@@ -10,10 +12,17 @@ const product = {
 };
 
 export default function AdminEditProductPage({ params }: { params: { id: string } }) {
+  const { role, loading } = useAuth();
+  const router = useRouter();
   const [name, setName] = useState(product.name);
   const [price, setPrice] = useState(product.price.toString());
   const [image, setImage] = useState(product.image);
-  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (!loading && role !== 'admin') router.replace('/login');
+  }, [role, loading, router]);
+
+  if (loading || role !== 'admin') return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +30,6 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
       alert('Please upload an image.');
       return;
     }
-    setLoading(true);
     try {
       await updateDoc(doc(db, 'products', params.id), {
         name,
@@ -30,10 +38,8 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
         updatedAt: new Date(),
       });
       alert('Product updated successfully!');
-    } catch (err) {
+    } catch {
       alert('Failed to update product.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -46,7 +52,7 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
           <Input label="Price" value={price} onChange={e => setPrice(e.target.value)} type="number" required />
           {/* <Input label="Image URL" value={image} onChange={e => setImage(e.target.value)} required /> */}
           <CloudinaryUpload onUpload={setImage} initialUrl={image} />
-          <Button type="submit" className="w-full" loading={loading}>Update Product</Button>
+          <Button type="submit" className="w-full">Update Product</Button>
         </form>
         <div className="mt-8 text-center text-gray-500">Cloudinary image/video upload coming soon.</div>
       </Card>

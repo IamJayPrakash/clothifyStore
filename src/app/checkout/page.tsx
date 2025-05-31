@@ -1,15 +1,31 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Button, Input, Card } from '../../components/ui';
 import { useAuth } from '../../firebase/auth-context';
 import { db } from '../../firebase/config';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (document.getElementById('razorpay-script')) return resolve(true);
+    const script = document.createElement('script');
+    script.id = 'razorpay-script';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<Array<{ id: string; name: string; image: string; price: number; qty: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [address, setAddress] = useState('');
   const [paying, setPaying] = useState(false);
+  const router = useRouter();
 
   // Load cart from Firestore or localStorage
   useEffect(() => {
@@ -30,10 +46,68 @@ export default function CheckoutPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setPaying(true);
-    // TODO: Integrate Razorpay payment
-    setTimeout(() => setPaying(false), 2000);
+    if (!address) {
+      alert('Please enter your shipping address.');
+      setPaying(false);
+      return;
+    }
+    if (cart.length === 0) {
+      alert('Your cart is empty.');
+      setPaying(false);
+      return;
+    }
+    const res = await loadRazorpayScript();
+    if (!res) {
+      alert('Failed to load Razorpay.');
+      setPaying(false);
+      return;
+    }
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: total * 100,
+      currency: 'INR',
+      name: 'Clothify Store',
+      description: 'Order Payment',
+      handler: async function (response: unknown) {
+        // Save order to Firestore
+        try {
+          await addDoc(collection(db, 'orders'), {
+            user: user ? user.uid : null,
+            address,
+            items: cart,
+            total,
+            paymentId: (response as { razorpay_payment_id: string }).razorpay_payment_id,
+            status: 'pending',
+            createdAt: Timestamp.now(),
+          });
+          // Clear cart
+          if (user) {
+            await setDoc(doc(db, 'carts', user.uid), { items: [] });
+          } else {
+            localStorage.removeItem('cart');
+          }
+          router.push('/orders/success');
+        } catch {
+          router.push('/orders/failure');
+        }
+      },
+      prefill: {
+        name: user?.displayName || '',
+        email: user?.email || '',
+      },
+      theme: { color: '#e11d48' },
+      modal: {
+        ondismiss: function () {
+          setPaying(false);
+        },
+      },
+    };
+    // @ts-expect-error: Razorpay is not typed in the window object
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+    setPaying(false);
   };
 
   if (loading) return <div className="text-center py-16">Loading cart...</div>;

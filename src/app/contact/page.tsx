@@ -1,5 +1,7 @@
+"use client";
 import React, { useState } from 'react';
 import { Card, Input, Button, SectionTitle } from '../../components/ui';
+import emailjs from 'emailjs-com';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -7,15 +9,25 @@ export default function ContactPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Integrate EmailJS or Firebase Function
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+    try {
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        { name, email, message },
+        process.env.NEXT_PUBLIC_EMAILJS_USER_ID!
+      );
       setSent(true);
-    }, 1500);
+    } catch {
+      setError('Failed to send message. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,7 +40,17 @@ export default function ContactPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input label="Name" value={name} onChange={e => setName(e.target.value)} required />
             <Input label="Email" value={email} onChange={e => setEmail(e.target.value)} type="email" required />
-            <Input label="Message" value={message} onChange={e => setMessage(e.target.value)} as="textarea" required />
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Message</label>
+              <textarea
+                className="block w-full rounded border px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition border-gray-300"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                required
+                rows={4}
+              />
+            </div>
+            {error && <div className="text-red-500 text-sm">{error}</div>}
             <Button type="submit" className="w-full" loading={loading}>Send Message</Button>
           </form>
         )}

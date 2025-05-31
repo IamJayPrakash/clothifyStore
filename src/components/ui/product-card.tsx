@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { Card } from './card';
+import Image from 'next/image';
 
 export interface ProductCardProps {
-  id: string;
   name: string;
   image: string;
   price: number;
@@ -11,11 +11,11 @@ export interface ProductCardProps {
   href: string;
 }
 
-export function ProductCard({ id, name, image, price, oldPrice, href }: ProductCardProps) {
+export function ProductCard({ name, image, price, oldPrice, href }: ProductCardProps) {
   return (
     <Card className="overflow-hidden group">
       <Link href={href} className="block">
-        <img src={image} alt={name} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300" />
+        <Image src={image} alt={name} width={224} height={224} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300" />
         <div className="p-4">
           <h3 className="font-semibold text-lg mb-1 line-clamp-2">{name}</h3>
           <div className="flex items-center gap-2 mb-2">

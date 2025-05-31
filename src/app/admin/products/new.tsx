@@ -2,12 +2,21 @@ import React, { useState } from 'react';
 import { Card, Input, Button, SectionTitle, CloudinaryUpload } from '../../../components/ui';
 import { db } from '../../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { useAuth } from '../../../firebase/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function AdminNewProductPage() {
+  const { role, loading } = useAuth();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [image, setImage] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (!loading && role !== 'admin') router.replace('/login');
+  }, [role, loading, router]);
+
+  if (loading || role !== 'admin') return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +24,6 @@ export default function AdminNewProductPage() {
       alert('Please upload an image.');
       return;
     }
-    setLoading(true);
     try {
       await addDoc(collection(db, 'products'), {
         name,
@@ -27,10 +35,8 @@ export default function AdminNewProductPage() {
       setPrice('');
       setImage('');
       alert('Product added successfully!');
-    } catch (err) {
+    } catch {
       alert('Failed to add product.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -43,7 +49,7 @@ export default function AdminNewProductPage() {
           <Input label="Price" value={price} onChange={e => setPrice(e.target.value)} type="number" required />
           {/* <Input label="Image URL" value={image} onChange={e => setImage(e.target.value)} required /> */}
           <CloudinaryUpload onUpload={setImage} />
-          <Button type="submit" className="w-full" loading={loading}>Add Product</Button>
+          <Button type="submit" className="w-full">Add Product</Button>
         </form>
         <div className="mt-8 text-center text-gray-500">Cloudinary image/video upload coming soon.</div>
       </Card>

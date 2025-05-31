@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from './config';
 import {
@@ -6,14 +8,18 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   User,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
+  role: 'admin' | 'user' | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -21,11 +27,15 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<'admin' | 'user' | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      if (user?.email?.endsWith('@clothifystore.com')) setRole('admin');
+      else if (user) setRole('user');
+      else setRole(null);
     });
     return () => unsubscribe();
   }, []);
@@ -48,8 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   };
 
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    setLoading(false);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, signup }}>
+    <AuthContext.Provider value={{ user, loading, role, login, logout, signup, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

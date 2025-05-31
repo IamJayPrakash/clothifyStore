@@ -1,23 +1,45 @@
+'use client';
 import React, { useState } from 'react';
-import { Button, Card } from '../../../components/ui';
+import { Button } from '../../../components/ui';
 import { db } from '../../../firebase/config';
 import { collection, getDocs, query, where, doc, getDoc, setDoc } from 'firebase/firestore';
-import { notFound } from 'next/navigation';
 import { useAuth } from '../../../firebase/auth-context';
+import Image from 'next/image';
+
+// Define ProductType and CartItemType
+interface ProductType {
+  id: string;
+  name: string;
+  image: string;
+  images?: string[];
+  price: number;
+  oldPrice?: number;
+  slug: string;
+  description?: string;
+  sizes?: string[];
+}
+interface CartItemType {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  qty: number;
+  href: string;
+}
 
 async function getProduct(slug: string) {
   const productsRef = collection(db, 'products');
   const q = query(productsRef, where('slug', '==', slug));
   const snapshot = await getDocs(q);
   if (snapshot.empty) return null;
-  return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+  return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as ProductType;
 }
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const { user } = useAuth();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<ProductType | null>(null);
 
   React.useEffect(() => {
     getProduct(params.slug).then(setProduct);
@@ -27,23 +49,23 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
 
   const handleAddToCart = async () => {
     setAdding(true);
-    let cart = [];
+    let cart: CartItemType[] = [];
     if (user) {
       const cartRef = doc(db, 'carts', user.uid);
       const cartSnap = await getDoc(cartRef);
-      cart = cartSnap.exists() ? cartSnap.data().items : [];
-      const exists = cart.find((item: any) => item.id === product.id);
+      cart = cartSnap.exists() ? cartSnap.data().items as CartItemType[] : [];
+      const exists = cart.find((item) => item.id === product.id);
       if (exists) {
-        cart = cart.map((item: any) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+        cart = cart.map((item) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
       } else {
         cart.push({ id: product.id, name: product.name, image: product.images?.[0] || product.image, price: product.price, qty: 1, href: `/product/${product.slug}` });
       }
       await setDoc(cartRef, { items: cart });
     } else {
       cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      const exists = cart.find((item: any) => item.id === product.id);
+      const exists = cart.find((item: CartItemType) => item.id === product.id);
       if (exists) {
-        cart = cart.map((item: any) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+        cart = cart.map((item: CartItemType) => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
       } else {
         cart.push({ id: product.id, name: product.name, image: product.images?.[0] || product.image, price: product.price, qty: 1, href: `/product/${product.slug}` });
       }
@@ -60,11 +82,11 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
         {/* Gallery */}
         <div className="flex-1 flex flex-col gap-4">
           <div className="w-full aspect-[3/4] bg-accent rounded-lg overflow-hidden flex items-center justify-center">
-            <img src={product.images?.[0] || product.image} alt={product.name} className="object-cover w-full h-full" />
+            <Image src={product.images?.[0] || product.image} alt={product.name} width={400} height={400} className="object-cover w-full h-full" />
           </div>
           <div className="flex gap-2">
             {(product.images || [product.image]).map((img: string, i: number) => (
-              <img key={i} src={img} alt="thumb" className="w-16 h-16 object-cover rounded border hover:border-primary cursor-pointer" />
+              <Image key={i} src={img} alt="thumb" width={64} height={64} className="w-16 h-16 object-cover rounded border hover:border-primary cursor-pointer" />
             ))}
           </div>
         </div>
