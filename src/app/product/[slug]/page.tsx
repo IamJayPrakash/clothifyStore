@@ -5,6 +5,7 @@ import { db } from '../../../firebase/config';
 import { collection, getDocs, query, where, doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../../../firebase/auth-context';
 import Image from 'next/image';
+import type { PageProps } from '../../../../.next/types/app/product/[slug]/page';
 
 // Define ProductType and CartItemType
 interface ProductType {
